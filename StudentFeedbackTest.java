@@ -12,15 +12,18 @@ public class StudentFeedbackTest {
     // ── Driver setup ────────────────────────────────────────────────────────
 
     public static WebDriver initDriver() {
-        System.setProperty("webdriver.chrome.driver",
-                "C:\\Users\\VANSH GUPTA\\OneDrive\\Desktop\\chromedriver.exe");
+        // Use chromedriver from project folder (Jenkins-friendly)
+        System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
+
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
         return driver;
     }
 
     public static void openForm(WebDriver driver) throws InterruptedException {
-        driver.get("file:///C:/Users/VANSH%20GUPTA/OneDrive/Desktop/devops-CAII/index.html");
+        // Load HTML from current workspace
+        String path = System.getProperty("user.dir") + "/index.html";
+        driver.get("file:///" + path.replace("\\", "/"));
         Thread.sleep(2000);
     }
 
@@ -51,7 +54,7 @@ public class StudentFeedbackTest {
             Thread.sleep(1000);
             driver.switchTo().alert().accept();
         } catch (Exception e) {
-            // No alert present → ignore
+            // No alert → ignore
         }
     }
 
@@ -66,20 +69,16 @@ public class StudentFeedbackTest {
 
     // ── Test Cases ───────────────────────────────────────────────────────────
 
-    // TC-01: Verify the form page loads successfully
     public static void testFormOpens(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-01: Form Opens =====");
 
-        // Test page title
         boolean titleOk = driver.getTitle().contains("Student Feedback");
         System.out.println("Page Title Check       : " + (titleOk ? "✅ PASS" : "❌ FAIL") +
                 " → " + driver.getTitle());
 
-        // Test form element present
         boolean formVisible = driver.findElement(By.id("feedbackForm")).isDisplayed();
         System.out.println("Form Element Visible   : " + (formVisible ? "✅ PASS" : "❌ FAIL"));
 
-        // Test all required fields present
         String[] fields = {"studentName", "emailId", "mobile", "department", "feedback"};
         for (String fieldId : fields) {
             boolean found = driver.findElement(By.id(fieldId)) != null;
@@ -87,7 +86,6 @@ public class StudentFeedbackTest {
         }
     }
 
-    // TC-02: Enter valid data and verify successful submission
     public static void testValidSubmission(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-02: Valid Submission =====");
 
@@ -96,11 +94,9 @@ public class StudentFeedbackTest {
         Thread.sleep(500);
         handleAlert(driver);
 
-        // Check success toast appears
         boolean toastVisible = isDisplayed(driver, "successToast");
         System.out.println("Success Toast Visible  : " + (toastVisible ? "✅ PASS" : "❌ FAIL"));
 
-        // Check toast text
         if (toastVisible) {
             String toastText = driver.findElement(By.id("successToast")).getText().toLowerCase();
             boolean toastTextOk = toastText.contains("submitted successfully");
@@ -111,7 +107,6 @@ public class StudentFeedbackTest {
         Thread.sleep(1000);
     }
 
-    // TC-03: Leave mandatory fields blank and check error messages
     public static void testBlankFieldErrors(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-03: Blank Field Errors =====");
 
@@ -130,7 +125,6 @@ public class StudentFeedbackTest {
         Thread.sleep(500);
     }
 
-    // TC-04: Enter invalid email formats and verify validation error
     public static void testEmailValidation(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-04: Email Validation =====");
 
@@ -153,7 +147,6 @@ public class StudentFeedbackTest {
                     (errVisible ? "✅ PASS" : "❌ FAIL"));
         }
 
-        // Test valid email hides error
         driver.findElement(By.id("emailId")).clear();
         driver.findElement(By.id("emailId")).sendKeys("valid.user@university.ac.in");
         driver.findElement(By.id("emailId")).sendKeys(Keys.TAB);
@@ -163,16 +156,15 @@ public class StudentFeedbackTest {
         System.out.println("Valid Email - Error Hidden  : " + (errHidden ? "✅ PASS" : "❌ FAIL"));
     }
 
-    // TC-05: Enter invalid mobile numbers and verify validation
     public static void testMobileValidation(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-05: Mobile Validation =====");
 
         String[] badMobiles = {
-            "12345",         // too short
-            "abcdefghij",    // letters
-            "123456789",     // 9 digits
-            "12345678901",   // 11 digits
-            "98765-43210"    // hyphen
+            "12345",
+            "abcdefghij",
+            "123456789",
+            "12345678901",
+            "98765-43210"
         };
 
         for (String badMobile : badMobiles) {
@@ -186,7 +178,6 @@ public class StudentFeedbackTest {
                     (errVisible ? "✅ PASS" : "❌ FAIL"));
         }
 
-        // Test valid mobile hides error
         driver.findElement(By.id("mobile")).clear();
         driver.findElement(By.id("mobile")).sendKeys("9876543210");
         driver.findElement(By.id("mobile")).sendKeys(Keys.TAB);
@@ -196,17 +187,14 @@ public class StudentFeedbackTest {
         System.out.println("Valid Mobile - Error Hidden : " + (errHidden ? "✅ PASS" : "❌ FAIL"));
     }
 
-    // TC-06: Verify dropdown (department) selection works correctly
     public static void testDropdownSelection(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-06: Dropdown Selection =====");
 
         Select sel = new Select(driver.findElement(By.id("department")));
 
-        // Default should be empty
         boolean defaultEmpty = sel.getFirstSelectedOption().getAttribute("value").equals("");
         System.out.println("Default Option Empty       : " + (defaultEmpty ? "✅ PASS" : "❌ FAIL"));
 
-        // Test each department option
         String[][] deptOptions = {
             {"CSE", "Computer Science"},
             {"ECE", "Electronics"},
@@ -228,23 +216,19 @@ public class StudentFeedbackTest {
         }
     }
 
-    // TC-07: Verify Submit and Reset button behaviors
     public static void testButtonBehavior(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-07: Button Behavior =====");
 
-        // Submit button exists and is clickable
         WebElement submitBtn = driver.findElement(By.id("submitBtn"));
         boolean submitOk = submitBtn.isDisplayed() && submitBtn.isEnabled();
         System.out.println("Submit Button Visible+Enabled : " + (submitOk ? "✅ PASS" : "❌ FAIL"));
 
-        // Reset clears name field
         driver.findElement(By.id("studentName")).sendKeys("Test Student");
         driver.findElement(By.id("resetBtn")).click();
         Thread.sleep(200);
         boolean nameCleared = driver.findElement(By.id("studentName")).getAttribute("value").equals("");
         System.out.println("Reset Clears Name Field       : " + (nameCleared ? "✅ PASS" : "❌ FAIL"));
 
-        // Reset clears all fields
         fillValidForm(driver);
         driver.findElement(By.id("resetBtn")).click();
         Thread.sleep(200);
@@ -260,7 +244,6 @@ public class StudentFeedbackTest {
         boolean deptReset = sel.getFirstSelectedOption().getAttribute("value").equals("");
         System.out.println("Reset Clears Department       : " + (deptReset ? "✅ PASS" : "❌ FAIL"));
 
-        // Reset clears error messages
         driver.findElement(By.id("submitBtn")).click();
         Thread.sleep(300);
         handleAlert(driver);
@@ -272,7 +255,6 @@ public class StudentFeedbackTest {
         for (String errId : errIds) {
             if (isDisplayed(driver, errId)) {
                 errorsCleared = false;
-                System.out.println("  ❌ Error #" + errId + " still visible after reset!");
             }
         }
         System.out.println("Reset Clears All Errors       : " + (errorsCleared ? "✅ PASS" : "❌ FAIL"));
