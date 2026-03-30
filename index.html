@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Feedback Registration Form</title>
+
+  <!-- ── Sub Task 2: EXTERNAL CSS ── -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ── Sub Task 2: INTERNAL CSS ── -->
+  <style>
+    /* Internal CSS – supplements the external stylesheet */
+
+    /* Progress indicator strip at top of card */
+    .progress-strip {
+      height: 4px;
+      background: linear-gradient(90deg, #c0392b 0%, #d4a017 50%, #27ae60 100%);
+      width: 0%;
+      transition: width .4s ease;
+      border-radius: 0;
+    }
+
+    /* Character counter for textarea */
+    .char-hint {
+      display: flex;
+      justify-content: space-between;
+      font-size: .75rem;
+      color: #7f8c8d;
+      margin-top: 4px;
+    }
+
+    #wordCount { font-weight: 700; color: #c0392b; }
+    #wordCount.ok { color: #27ae60; }
+
+    /* Section headings inside the form */
+    .section-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      color: #1a1a2e;
+      margin-bottom: 18px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #c0392b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: #d4a017;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Highlight on valid field check mark */
+    .input-wrap { position: relative; }
+
+    .input-wrap .tick {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: #27ae60;
+      font-size: 1rem;
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+    }
+
+    .input-wrap input.valid ~ .tick,
+    .input-wrap select.valid ~ .tick { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     Sub Task 1: REGISTRATION FORM STRUCTURE
+     ════════════════════════════════════════════════ -->
+<div class="form-card" id="feedbackCard">
+
+  <!-- Progress strip (driven by JS) -->
+  <div class="progress-strip" id="progressStrip"></div>
+
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-badge">Academic Portal</div>
+    <h1>Student Feedback Form</h1>
+    <p>Your feedback helps us improve. All fields marked <strong style="color:#e74c3c">*</strong> are required.</p>
+  </div>
+
+  <!-- Form Body -->
+  <div class="form-body">
+    <form id="feedbackForm" novalidate>
+
+      <!-- ── Section 1: Personal Info ── -->
+      <div class="section-label">Personal Information</div>
+
+      <!-- Row 1: Name + Email -->
+      <div class="field-row">
+
+        <div class="field-group">
+          <label for="studentName">Student Name <span class="required">*</span></label>
+          <div class="input-wrap">
+            <input
+              type="text"
+              id="studentName"
+              name="studentName"
+              placeholder="Full name"
+              autocomplete="name"
+              aria-describedby="nameErr"
+            />
+            <span class="tick">✓</span>
+          </div>
+          <div class="error-msg" id="nameErr">Please enter your full name.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="emailId">Email ID <span class="required">*</span></label>
+          <div class="input-wrap">
+            <input
+              type="email"
+              id="emailId"
+              name="emailId"
+              placeholder="you@example.com"
+              autocomplete="email"
+              aria-describedby="emailErr"
+            />
+            <span class="tick">✓</span>
+          </div>
+          <div class="error-msg" id="emailErr">Enter a valid email address.</div>
+        </div>
+
+      </div><!-- /.field-row -->
+
+      <!-- Row 2: Mobile + Department -->
+      <div class="field-row">
+
+        <div class="field-group">
+          <label for="mobile">Mobile Number <span class="required">*</span></label>
+          <div class="input-wrap">
+            <input
+              type="tel"
+              id="mobile"
+              name="mobile"
+              placeholder="10-digit number"
+              maxlength="10"
+              aria-describedby="mobileErr"
+            />
+            <span class="tick">✓</span>
+          </div>
+          <div class="error-msg" id="mobileErr">Enter a valid 10-digit mobile number.</div>
+        </div>
+
+        <div class="field-group">
+          <label for="department">Department <span class="required">*</span></label>
+          <div class="input-wrap">
+            <select id="department" name="department" aria-describedby="deptErr">
+              <option value="">— Select Department —</option>
+              <option value="CSE">Computer Science &amp; Eng.</option>
+              <option value="ECE">Electronics &amp; Comm. Eng.</option>
+              <option value="ME">Mechanical Engineering</option>
+              <option value="CE">Civil Engineering</option>
+              <option value="IT">Information Technology</option>
+              <option value="DS">Data Science</option>
+              <option value="AI">Artificial Intelligence</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <span class="tick">✓</span>
+          </div>
+          <div class="error-msg" id="deptErr">Please select your department.</div>
+        </div>
+
+      </div><!-- /.field-row -->
+
+      <!-- Gender -->
+      <div class="field-group">
+        <label>Gender <span class="required">*</span></label>
+        <div class="gender-group" role="radiogroup" aria-describedby="genderErr">
+          <label class="gender-option">
+            <input type="radio" name="gender" value="Male" /> Male
+          </label>
+          <label class="gender-option">
+            <input type="radio" name="gender" value="Female" /> Female
+          </label>
+          <label class="gender-option">
+            <input type="radio" name="gender" value="Non-binary" /> Non-binary
+          </label>
+          <label class="gender-option">
+            <input type="radio" name="gender" value="Prefer not to say" /> Prefer not to say
+          </label>
+        </div>
+        <div class="error-msg" id="genderErr">Please select a gender option.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── Section 2: Feedback ── -->
+      <div class="section-label">Feedback Details</div>
+
+      <div class="field-group">
+        <label for="feedback">Feedback Comments <span class="required">*</span></label>
+        <textarea
+          id="feedback"
+          name="feedback"
+          placeholder="Share your detailed feedback here (minimum 10 words)…"
+          aria-describedby="feedbackErr"
+        ></textarea>
+        <div class="char-hint">
+          <div class="error-msg" id="feedbackErr" style="position:static;margin:0;">
+            Feedback must be at least 10 words.
+          </div>
+          <span>Words: <span id="wordCount">0</span></span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ── Buttons (Sub Task 1) ── -->
+      <div class="btn-row">
+        <button type="submit" class="btn btn-submit" id="submitBtn">Submit Feedback</button>
+        <button type="button" class="btn btn-reset"  id="resetBtn">Reset Form</button>
+      </div>
+
+    </form>
+  </div><!-- /.form-body -->
+
+  <!-- Footer -->
+  <div class="form-footer">
+    &copy; 2025 Academic Feedback Portal &nbsp;|&nbsp; All responses are confidential.
+  </div>
+
+</div><!-- /.form-card -->
+
+<!-- Success Toast -->
+<div id="successToast" role="alert" aria-live="polite">
+  <span>✓</span> Feedback submitted successfully!
+</div>
+
+
+<script src="script.js"></script>
+</body>
+</html>
