@@ -1,6 +1,7 @@
 package com.selenium.test;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -12,22 +13,27 @@ public class StudentFeedbackTest {
     // ── Driver setup ────────────────────────────────────────────────────────
 
     public static WebDriver initDriver() {
-        // Use chromedriver from project folder (Jenkins-friendly)
         System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
-
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
         return driver;
     }
 
     public static void openForm(WebDriver driver) throws InterruptedException {
-        // Load HTML from current workspace
         String path = System.getProperty("user.dir") + "/index.html";
         driver.get("file:///" + path.replace("\\", "/"));
         Thread.sleep(2000);
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
+
+    // ✅ FIXED: Uses JavaScript click to avoid ElementClickInterceptedException
+    public static void jsClick(WebDriver driver, String elementId) throws InterruptedException {
+        WebElement el = driver.findElement(By.id(elementId));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", el);
+        Thread.sleep(500);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", el);
+    }
 
     public static void fillValidForm(WebDriver driver) {
         driver.findElement(By.id("studentName")).clear();
@@ -90,7 +96,9 @@ public class StudentFeedbackTest {
         System.out.println("\n===== TC-02: Valid Submission =====");
 
         fillValidForm(driver);
-        driver.findElement(By.id("submitBtn")).click();
+
+        // ✅ FIXED: scroll into view and click using JavaScript
+        jsClick(driver, "submitBtn");
         Thread.sleep(500);
         handleAlert(driver);
 
@@ -110,7 +118,8 @@ public class StudentFeedbackTest {
     public static void testBlankFieldErrors(WebDriver driver) throws InterruptedException {
         System.out.println("\n===== TC-03: Blank Field Errors =====");
 
-        driver.findElement(By.id("submitBtn")).click();
+        // ✅ FIXED: JavaScript click for submit button
+        jsClick(driver, "submitBtn");
         Thread.sleep(300);
         handleAlert(driver);
 
@@ -224,13 +233,13 @@ public class StudentFeedbackTest {
         System.out.println("Submit Button Visible+Enabled : " + (submitOk ? "✅ PASS" : "❌ FAIL"));
 
         driver.findElement(By.id("studentName")).sendKeys("Test Student");
-        driver.findElement(By.id("resetBtn")).click();
+        jsClick(driver, "resetBtn");
         Thread.sleep(200);
         boolean nameCleared = driver.findElement(By.id("studentName")).getAttribute("value").equals("");
         System.out.println("Reset Clears Name Field       : " + (nameCleared ? "✅ PASS" : "❌ FAIL"));
 
         fillValidForm(driver);
-        driver.findElement(By.id("resetBtn")).click();
+        jsClick(driver, "resetBtn");
         Thread.sleep(200);
 
         boolean allCleared =
@@ -244,10 +253,10 @@ public class StudentFeedbackTest {
         boolean deptReset = sel.getFirstSelectedOption().getAttribute("value").equals("");
         System.out.println("Reset Clears Department       : " + (deptReset ? "✅ PASS" : "❌ FAIL"));
 
-        driver.findElement(By.id("submitBtn")).click();
+        jsClick(driver, "submitBtn");
         Thread.sleep(300);
         handleAlert(driver);
-        driver.findElement(By.id("resetBtn")).click();
+        jsClick(driver, "resetBtn");
         Thread.sleep(200);
 
         String[] errIds = {"nameErr", "emailErr", "mobileErr", "genderErr", "deptErr", "feedbackErr"};
